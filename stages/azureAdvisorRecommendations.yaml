@@ -1,0 +1,55 @@
+stages:
+  - stage: AzureAdvisorRecommendations
+    jobs:
+      - job: AzureAdvisorRecommendations
+        variables:
+          - template: Pipelines/variables/deploy.yml@sources
+
+          - name: nugetPath
+            value: $(System.DefaultWorkingDirectory)/azureAdvisor/ci/nuget
+
+          - name: scriptsPath
+            value: $(System.DefaultWorkingDirectory)/azureAdvisor/ci/recommendationScripts
+        steps:
+        - checkout: self
+          clean: true
+
+        - task: AzurePowerShell@5
+          inputs:
+            azureSubscription: root-mgr-spn
+            ScriptType: FilePath
+            scriptPath: $(scriptsPath)/general/Start-AzAdvisorRecommendationRefresh.ps1
+            azurePowerShellVersion: latestVersion
+            pwsh: true
+          displayName: Refresh Azure Advisor Recommendations
+
+        - task: AzurePowerShell@5
+          inputs:
+            azureSubscription: root-mgr-spn
+            ScriptType: FilePath
+            scriptPath: $(scriptsPath)/helpers/New-MsGraphAuthorizationToken.ps1
+            azurePowerShellVersion: latestVersion
+            pwsh: true
+          displayName: Generate Microsoft Graph Token
+
+        - task: AzurePowerShell@5
+          inputs:
+            azureSubscription: root-mgr-spn
+            ScriptType: FilePath
+            scriptPath: $(scriptsPath)/security/Remove-DeprecatedOwnersFromSubscription.ps1
+            azurePowerShellVersion: latestVersion
+            pwsh: true
+            scriptArguments: >
+              -GraphToken "$(graphToken)"
+          displayName: Security Recommendation - Deprecated accounts with owner permissions should be removed from your subscriptions
+
+        - task: AzurePowerShell@5
+          inputs:
+            azureSubscription: root-mgr-spn
+            ScriptType: FilePath
+            scriptPath: $(scriptsPath)/security/Remove-DeprecatedAccountFromSubscription.ps1
+            azurePowerShellVersion: latestVersion
+            pwsh: true
+            scriptArguments: >
+              -GraphToken "$(graphToken)"
+          displayName: Security Recommendation - Deprecated accounts should be removed from your subscription
