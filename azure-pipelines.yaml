@@ -1,0 +1,24 @@
+name: $(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)-$(Build.SourceBranchName)
+
+parameters:
+- name: connectedServiceName
+  type: string
+
+trigger:
+- '*'
+
+pool:
+  vmImage: windows-latest
+
+schedules:
+- cron: 0 9 * * *
+  displayName: Daily Schedule
+  branches:
+    include:
+      - master
+  always: true
+
+stages:
+  - template: stages/azureAdvisorRecommendations.yaml
+    parameters:
+      connectedServiceName: ${{ parameters.connectedServiceName }}

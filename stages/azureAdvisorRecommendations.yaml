@@ -1,13 +1,12 @@
+parameters:
+- name: connectedServiceName
+  type: string
+
 stages:
   - stage: AzureAdvisorRecommendations
     jobs:
       - job: AzureAdvisorRecommendations
         variables:
-          - template: Pipelines/variables/deploy.yml@sources
-
-          - name: nugetPath
-            value: $(System.DefaultWorkingDirectory)/azureAdvisor/ci/nuget
-
           - name: scriptsPath
             value: $(System.DefaultWorkingDirectory)/azureAdvisor/ci/recommendationScripts
         steps:
@@ -16,16 +15,16 @@ stages:
 
         - task: AzurePowerShell@5
           inputs:
-            azureSubscription: root-mgr-spn
+            azureSubscription: ${{ parameters.connectedServiceName }}
             ScriptType: FilePath
-            scriptPath: $(scriptsPath)/general/Start-AzAdvisorRecommendationRefresh.ps1
+            scriptPath: $(scriptsPath)/helpers/Start-AzAdvisorRecommendationRefresh.ps1
             azurePowerShellVersion: latestVersion
             pwsh: true
           displayName: Refresh Azure Advisor Recommendations
 
         - task: AzurePowerShell@5
           inputs:
-            azureSubscription: root-mgr-spn
+            azureSubscription: ${{ parameters.connectedServiceName }}
             ScriptType: FilePath
             scriptPath: $(scriptsPath)/helpers/New-MsGraphAuthorizationToken.ps1
             azurePowerShellVersion: latestVersion
@@ -34,9 +33,9 @@ stages:
 
         - task: AzurePowerShell@5
           inputs:
-            azureSubscription: root-mgr-spn
+            azureSubscription: ${{ parameters.connectedServiceName }}
             ScriptType: FilePath
-            scriptPath: $(scriptsPath)/security/Remove-DeprecatedOwnersFromSubscription.ps1
+            scriptPath: $(scriptsPath)/securityRecommendations/Remove-DeprecatedOwnersFromSubscription.ps1
             azurePowerShellVersion: latestVersion
             pwsh: true
             scriptArguments: >
@@ -45,9 +44,9 @@ stages:
 
         - task: AzurePowerShell@5
           inputs:
-            azureSubscription: root-mgr-spn
+            azureSubscription: ${{ parameters.connectedServiceName }}
             ScriptType: FilePath
-            scriptPath: $(scriptsPath)/security/Remove-DeprecatedAccountFromSubscription.ps1
+            scriptPath: $(scriptsPath)/securityRecommendations/Remove-DeprecatedAccountFromSubscription.ps1
             azurePowerShellVersion: latestVersion
             pwsh: true
             scriptArguments: >
