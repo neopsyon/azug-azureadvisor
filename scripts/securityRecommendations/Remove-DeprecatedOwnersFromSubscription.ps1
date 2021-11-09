@@ -4,8 +4,10 @@ param (
 )
 begin {
     $ErrorActionPreference = 'Stop'
-    Import-Module 'SBPGraphHelpers', 'ArgAzureHelpers' -Force
-    Install-Module 'Az.ResourceGraph' -Confirm:$false -Force
+    . ('{0}/helpers/Invoke-MsGraphRestMethod.ps1' -f (get-item $PSScriptRoot).parent)
+    if (-not (Get-Module 'Az.ResourceGraph' -ListAvailable)) {
+        Install-Module 'Az.ResourceGraph' -Confirm:$false -Force
+    }
     $UriParams = @{'$select' = 'id,accountEnabled,userPrincipalName' }
     # Azure Graph Query for advisory - Deprecated accounts with owner permissions should be removed from your subscriptions
     $graphquery = 'securityresources
