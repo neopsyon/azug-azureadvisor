@@ -5,6 +5,7 @@ param (
 begin {
     $ErrorActionPreference = 'Stop'
     . ('{0}/helpers/Invoke-MsGraphRestMethod.ps1' -f (get-item $PSScriptRoot).parent)
+    . ('{0}/helpers/Split-AzResourceId.ps1' -f (get-item $PSScriptRoot).parent)
     if (-not (Get-Module 'Az.ResourceGraph' -ListAvailable)) {
         Install-Module 'Az.ResourceGraph' -Confirm:$false -Force
     }
@@ -44,6 +45,7 @@ process {
                             if ($testResourceLock) {
                                 $testResourceLock | Remove-AzResourceLock -Confirm:$false -Force | Out-Null
                             }
+                            # IMPORTANT: Principal that is executing removal of the access has to have explicit assignment as the owner over the subscription scope, otherwise you will receive precondition failed error
                             Remove-AzRoleAssignment -ObjectId $azRoleAssignment.ObjectId -Scope $azRoleAssignment.Scope -RoleDefinitionName $azRoleAssignment.RoleDefinitionName -Confirm:$false
                             Write-host ('Removed access rights - {0} {1} {2}' -f $azRoleAssignment.ObjectId, $azRoleAssignment.Scope, $azRoleAssignment.RoleDefinitionName)
                             if ($testResourceLock) {
