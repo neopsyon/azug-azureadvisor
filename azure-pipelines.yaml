@@ -3,7 +3,6 @@ name: $(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)-$(Build.SourceBranchName)
 parameters:
 - name: connectedServiceName
   type: string
-  default: nemanjajovic-azuredevops
 
 trigger:
 - '*'
